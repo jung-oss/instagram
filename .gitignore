@@ -1,0 +1,21 @@
+# 루트 폴더에 .gitignore 파일 생성
+echo "# Dependencies
+node_modules/
+streamify-backend/node_modules/
+streamify-frontend/node_modules/
+
+# Environment files
+.env
+streamify-backend/.env
+streamify-frontend/.env
+
+# Build directories
+build/
+dist/
+
+# Database files
+*.db
+PostgreSQL.txt
+
+# Logs
+*.log" > .gitignore
