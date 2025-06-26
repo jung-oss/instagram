@@ -1,0 +1,26 @@
+echo "# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment files
+.env
+*/.env
+
+# Build directories
+build/
+dist/
+*/build/
+*/dist/
+
+# Database files
+*.db
+PostgreSQL.txt
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db" > .gitignore
