@@ -1,59 +1,126 @@
-/* 개선된 인증 모달 스타일 */
+/* components/AuthModal.css - 개선된 인증 모달 스타일 */
+
+/* 모달 오버레이 */
 .auth-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(15px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 10000;
   padding: 20px;
+  animation: fadeIn 0.3s ease-out;
 }
 
-.auth-container {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 모달 컨테이너 */
+.auth-modal {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(30px);
   border-radius: 24px;
-  padding: 40px;
+  padding: 40px 32px;
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.3);
   position: relative;
-  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
 }
 
-.auth-container::before {
-  content: '';
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 닫기 버튼 */
+.close-btn {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  z-index: 1;
 }
 
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* 헤더 */
 .auth-header {
   text-align: center;
   margin-bottom: 32px;
 }
 
 .auth-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #2d3748;
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 8px;
+  letter-spacing: -1px;
 }
 
 .auth-subtitle {
-  color: #718096;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
+/* 에러 메시지 */
+.auth-error {
+  background: rgba(255, 107, 107, 0.15);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  color: #ff6b6b;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: shakeError 0.4s ease-out;
+}
+
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* 폼 스타일 */
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -64,41 +131,77 @@
   position: relative;
 }
 
-.form-label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #4a5568;
-  margin-bottom: 8px;
-}
-
+/* 입력 필드 */
 .form-input {
   width: 100%;
-  padding: 16px 20px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  color: white;
   font-size: 16px;
-  color: #2d3748;
-  background: #ffffff;
+  font-family: inherit;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  outline: none;
-  position: relative;
-  z-index: 1;
   box-sizing: border-box;
 }
 
 .form-input:focus {
-  border-color: #4299e1;
-  box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.1);
-  transform: translateY(-1px);
+  outline: none;
+  border-color: #ff6b6b;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
+  transform: translateY(-2px);
 }
 
 .form-input:hover:not(:focus) {
-  border-color: #cbd5e0;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.form-input.error {
+  border-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
 }
 
 .form-input::placeholder {
-  color: #a0aec0;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 플로팅 라벨 */
+.form-label {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  background: transparent;
+  padding: 0 4px;
+}
+
+.form-input:focus + .form-label,
+.form-input:not(:placeholder-shown) + .form-label {
+  top: -12px;
+  left: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ff6b6b;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 0 8px;
+  border-radius: 4px;
+}
+
+/* 비밀번호 입력 래퍼 */
+.password-input-wrapper {
+  position: relative;
 }
 
 .password-toggle {
@@ -108,176 +211,56 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #718096;
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
-  transition: color 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .password-toggle:hover {
-  color: #4a5568;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.auth-error {
-  background: linear-gradient(135deg, #fed7d7, #feb2b2);
-  border: 1px solid #fc8181;
-  border-radius: 12px;
+/* 필드 에러 */
+.field-error {
+  display: block;
+  color: #ff6b6b;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 6px;
+  padding-left: 4px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 비밀번호 강도 표시 */
+.password-strength {
+  margin-top: 12px;
   padding: 16px;
-  color: #c53030;
-  font-size: 14px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: center;
-}
-
-.auth-success {
-  background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
-  border: 1px solid #68d391;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
-  padding: 16px;
-  color: #2f855a;
-  font-size: 14px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.auth-submit {
-  background: linear-gradient(135deg, #4299e1, #3182ce);
-  border: none;
-  border-radius: 12px;
-  padding: 16px 24px;
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.auth-submit:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(66, 153, 225, 0.4);
-}
-
-.auth-submit:active {
-  transform: translateY(0);
-}
-
-.auth-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.auth-submit.loading {
-  pointer-events: none;
-}
-
-.loading-spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: spin 1s ease-in-out infinite;
-  margin-right: 8px;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.auth-divider {
-  display: flex;
-  align-items: center;
-  margin: 24px 0;
-  color: #a0aec0;
-  font-size: 14px;
-}
-
-.auth-divider::before,
-.auth-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #e2e8f0;
-}
-
-.auth-divider span {
-  padding: 0 16px;
-}
-
-.auth-switch {
-  text-align: center;
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.auth-switch-text {
-  color: #718096;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-.switch-btn {
-  background: none;
-  border: none;
-  color: #4299e1;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.switch-btn:hover {
-  background: rgba(66, 153, 225, 0.1);
-  color: #3182ce;
-}
-
-.social-login {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.social-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  background: white;
-  color: #4a5568;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.social-btn:hover {
-  border-color: #cbd5e0;
-  transform: translateY(-1px);
-}
-
-.strength-meter {
+.strength-bar {
+  width: 100%;
   height: 4px;
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
-  margin-top: 8px;
   overflow: hidden;
+  margin-bottom: 8px;
 }
 
 .strength-fill {
@@ -286,88 +269,366 @@
   border-radius: 2px;
 }
 
-.strength-weak {
-  width: 33%;
-  background: #fc8181;
+.strength-fill.strength-very-weak {
+  background: #ff4757;
 }
 
-.strength-medium {
-  width: 66%;
-  background: #f6ad55;
+.strength-fill.strength-weak {
+  background: #ff6b6b;
 }
 
-.strength-strong {
-  width: 100%;
-  background: #68d391;
+.strength-fill.strength-medium {
+  background: #ffa726;
+}
+
+.strength-fill.strength-strong {
+  background: #66bb6a;
+}
+
+.strength-fill.strength-very-strong {
+  background: #4ecdc4;
+}
+
+.strength-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .strength-text {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.strength-text.strength-very-weak {
+  color: #ff4757;
+}
+
+.strength-text.strength-weak {
+  color: #ff6b6b;
+}
+
+.strength-text.strength-medium {
+  color: #ffa726;
+}
+
+.strength-text.strength-strong {
+  color: #66bb6a;
+}
+
+.strength-text.strength-very-strong {
+  color: #4ecdc4;
+}
+
+.strength-requirements {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.requirement {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
-  margin-top: 4px;
-  color: #718096;
+  transition: all 0.3s ease;
 }
 
-.checkbox-group {
+.requirement.met {
+  color: #4ecdc4;
+}
+
+.requirement.met svg {
+  color: #4ecdc4;
+}
+
+.requirement.unmet {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.requirement.unmet svg {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* 체크박스 */
+.checkbox-container {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  margin: 16px 0;
-}
-
-.custom-checkbox {
-  position: relative;
-  display: flex;
-  align-items: center;
   cursor: pointer;
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.8);
+  position: relative;
 }
 
-.custom-checkbox input {
+.checkbox-container input[type="checkbox"] {
   position: absolute;
   opacity: 0;
+  cursor: pointer;
 }
 
 .checkmark {
   width: 20px;
   height: 20px;
-  border: 2px solid #cbd5e0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 4px;
-  margin-right: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
-.custom-checkbox input:checked + .checkmark {
-  background: #4299e1;
-  border-color: #4299e1;
+.checkbox-container input[type="checkbox"]:checked + .checkmark {
+  background: #4ecdc4;
+  border-color: #4ecdc4;
 }
 
-.custom-checkbox input:checked + .checkmark::after {
-  content: '✓';
+.checkbox-container input[type="checkbox"]:checked + .checkmark svg {
   color: white;
-  font-size: 12px;
-  font-weight: 600;
 }
 
-.checkbox-label {
+.checkbox-container:hover .checkmark {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.checkbox-text a {
+  color: #4ecdc4;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.checkbox-text a:hover {
+  color: #ff6b6b;
+  text-decoration: underline;
+}
+
+/* 제출 버튼 */
+.auth-submit {
+  background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+  border: none;
+  border-radius: 16px;
+  padding: 18px 24px;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 8px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.auth-submit:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(255, 107, 107, 0.4);
+}
+
+.auth-submit:active:not(.disabled) {
+  transform: translateY(0);
+}
+
+.auth-submit.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.submit-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 모드 전환 */
+.auth-switch {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.switch-text {
+  color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
-  color: #4a5568;
-  line-height: 1.4;
+  font-weight: 500;
+}
+
+.switch-btn {
+  background: none;
+  border: none;
+  color: #4ecdc4;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: underline;
+  margin-left: 6px;
+  transition: color 0.3s ease;
+}
+
+.switch-btn:hover:not(:disabled) {
+  color: #ff6b6b;
+}
+
+.switch-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 푸터 */
+.auth-footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-footer p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* 스크롤바 스타일 */
+.auth-modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.auth-modal::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.auth-modal::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.auth-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 /* 반응형 디자인 */
 @media (max-width: 480px) {
-  .auth-container {
-    padding: 24px;
-    margin: 0 16px;
+  .auth-modal {
+    padding: 32px 24px;
+    margin: 16px;
+    max-width: none;
   }
-
+  
   .auth-title {
-    font-size: 24px;
+    font-size: 28px;
   }
+  
+  .auth-subtitle {
+    font-size: 15px;
+  }
+  
+  .form-input {
+    padding: 16px 18px;
+    font-size: 15px;
+  }
+  
+  .form-label {
+    font-size: 15px;
+    top: 16px;
+    left: 18px;
+  }
+  
+  .form-input:focus + .form-label,
+  .form-input:not(:placeholder-shown) + .form-label {
+    font-size: 11px;
+    left: 14px;
+  }
+  
+  .password-toggle {
+    right: 14px;
+  }
+  
+  .strength-requirements {
+    grid-template-columns: 1fr;
+  }
+  
+  .auth-submit {
+    padding: 16px 20px;
+    font-size: 15px;
+  }
+}
 
-  .social-login {
-    flex-direction: column;
+/* 터치 디바이스 최적화 */
+@media (hover: none) and (pointer: coarse) {
+  .form-input:hover:not(:focus) {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
   }
-} 
+  
+  .auth-submit:hover:not(.disabled) {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .auth-submit:active:not(.disabled) {
+    transform: scale(0.98);
+  }
+}
+
+/* 접근성 */
+@media (prefers-reduced-motion: reduce) {
+  .auth-modal-overlay,
+  .auth-modal,
+  .form-input,
+  .form-label,
+  .strength-fill,
+  .requirement,
+  .checkmark,
+  .auth-submit {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* 포커스 스타일 */
+.form-input:focus,
+.password-toggle:focus,
+.checkbox-container:focus-within .checkmark,
+.auth-submit:focus,
+.switch-btn:focus,
+.close-btn:focus {
+  outline: 2px solid #ff6b6b;
+  outline-offset: 2px;
+}
+
+/* 고대비 모드 */
+@media (prefers-contrast: high) {
+  .auth-modal {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  .form-input {
+    border-width: 2px;
+  }
+  
+  .form-input:focus {
+    border-width: 3px;
+  }
+  
+  .auth-error {
+    border-width: 2px;
+  }
+}

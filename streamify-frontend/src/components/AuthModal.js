@@ -1,260 +1,498 @@
+// components/AuthModal.js - 개선된 인증 모달
 import React, { useState, useEffect } from 'react';
+import { XIcon, EyeIcon, EyeOffIcon, CheckIcon, AlertIcon } from './icons/Icons';
 import './AuthModal.css';
 
-const AuthModal = ({ 
-  isOpen, 
-  onClose, 
-  onLogin, 
-  onRegister, 
-  initialMode = 'login',
-  loading = false,
-  error = ''
-}) => {
-  const [mode, setMode] = useState(initialMode);
+const AuthModal = ({ isOpen, onClose, onLogin, onRegister, loading, error }) => {
+  const [authMode, setAuthMode] = useState('login');
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
+    confirmPassword: '',
+    fullName: '',
     terms: false
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState({ strength: 0, text: '', className: '' });
-
-  // 모드 변경 시 폼 초기화
-  useEffect(() => {
-    setMode(initialMode);
-    clearForm();
-  }, [initialMode]);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ 
+    strength: 0, 
+    text: '', 
+    className: '',
+    requirements: []
+  });
+  const [validationErrors, setValidationErrors] = useState({});
+  const [isFormValid, setIsFormValid] = useState(false);
 
   // 폼 초기화
-  const clearForm = () => {
+  const resetForm = () => {
     setFormData({
       username: '',
       email: '',
       password: '',
+      confirmPassword: '',
+      fullName: '',
       terms: false
     });
     setShowPassword(false);
-    setPasswordStrength({ strength: 0, text: '', className: '' });
+    setShowConfirmPassword(false);
+    setPasswordStrength({ strength: 0, text: '', className: '', requirements: [] });
+    setValidationErrors({});
+    setIsFormValid(false);
   };
+
+  // 모달이 열릴 때마다 폼 초기화
+  useEffect(() => {
+    if (isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
 
   // 입력 필드 변경 처리
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
-    // 비밀번호 강도 체크 (회원가입 모드에서만)
-    if (field === 'password' && mode === 'register') {
+    // 실시간 유효성 검사
+    validateField(field, value);
+    
+    // 비밀번호 강도 체크
+    if (field === 'password' && authMode === 'register') {
       checkPasswordStrength(value);
     }
   };
 
+  // 필드별 유효성 검사
+  const validateField = (field, value) => {
+    const errors = { ...validationErrors };
+    
+    switch (field) {
+      case 'username':
+        if (!value.trim()) {
+          errors.username = '사용자명을 입력해주세요.';
+        } else if (value.length < 3) {
+          errors.username = '사용자명은 3자 이상이어야 합니다.';
+        } else if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+          errors.username = '영문, 숫자, 언더스코어만 사용 가능합니다.';
+        } else {
+          delete errors.username;
+        }
+        break;
+        
+      case 'email':
+        if (authMode === 'register') {
+          if (!value.trim()) {
+            errors.email = '이메일을 입력해주세요.';
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+            errors.email = '올바른 이메일 형식이 아닙니다.';
+          } else {
+            delete errors.email;
+          }
+        }
+        break;
+        
+      case 'password':
+        if (!value) {
+          errors.password = '비밀번호를 입력해주세요.';
+        } else if (authMode === 'register' && value.length < 8) {
+          errors.password = '비밀번호는 8자 이상이어야 합니다.';
+        } else {
+          delete errors.password;
+        }
+        break;
+        
+      case 'confirmPassword':
+        if (authMode === 'register') {
+          if (!value) {
+            errors.confirmPassword = '비밀번호를 다시 입력해주세요.';
+          } else if (value !== formData.password) {
+            errors.confirmPassword = '비밀번호가 일치하지 않습니다.';
+          } else {
+            delete errors.confirmPassword;
+          }
+        }
+        break;
+        
+      case 'fullName':
+        if (authMode === 'register') {
+          if (!value.trim()) {
+            errors.fullName = '이름을 입력해주세요.';
+          } else if (value.trim().length < 2) {
+            errors.fullName = '이름은 2자 이상이어야 합니다.';
+          } else {
+            delete errors.fullName;
+          }
+        }
+        break;
+        
+      default:
+        break;
+    }
+    
+    setValidationErrors(errors);
+    
+    // 폼 전체 유효성 확인
+    checkFormValidity({ ...formData, [field]: value }, errors);
+  };
+
+  // 폼 전체 유효성 확인
+  const checkFormValidity = (data = formData, errors = validationErrors) => {
+    const hasErrors = Object.keys(errors).length > 0;
+    let requiredFieldsFilled = false;
+    
+    if (authMode === 'login') {
+      requiredFieldsFilled = data.username.trim() && data.password;
+    } else {
+      requiredFieldsFilled = data.username.trim() && 
+                           data.email.trim() && 
+                           data.password && 
+                           data.confirmPassword &&
+                           data.fullName.trim() &&
+                           data.terms;
+    }
+    
+    setIsFormValid(!hasErrors && requiredFieldsFilled);
+  };
+
   // 비밀번호 강도 체크
   const checkPasswordStrength = (password) => {
-    let strength = 0;
+    const requirements = [
+      { test: password.length >= 8, text: '8자 이상' },
+      { test: /[a-z]/.test(password), text: '소문자 포함' },
+      { test: /[A-Z]/.test(password), text: '대문자 포함' },
+      { test: /[0-9]/.test(password), text: '숫자 포함' },
+      { test: /[^A-Za-z0-9]/.test(password), text: '특수문자 포함' }
+    ];
+    
+    const passedRequirements = requirements.filter(req => req.test);
+    const strength = passedRequirements.length;
+    
     let text = '매우 약함';
-    let className = 'strength-weak';
-
-    if (password.length >= 8) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[^A-Za-z0-9]/.test(password)) strength++;
-
-    if (strength >= 4) {
+    let className = 'strength-very-weak';
+    
+    if (strength >= 5) {
+      text = '매우 강함';
+      className = 'strength-very-strong';
+    } else if (strength >= 4) {
       text = '강함';
       className = 'strength-strong';
-    } else if (strength >= 2) {
+    } else if (strength >= 3) {
       text = '보통';
       className = 'strength-medium';
+    } else if (strength >= 2) {
+      text = '약함';
+      className = 'strength-weak';
     }
 
-    setPasswordStrength({ strength, text, className });
+    setPasswordStrength({ strength, text, className, requirements });
   };
 
   // 폼 제출 처리
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.username.trim() || !formData.password.trim()) {
+    if (!isFormValid || loading) return;
+    
+    // 최종 유효성 검사
+    Object.keys(formData).forEach(field => {
+      if (authMode === 'login' && ['email', 'confirmPassword', 'fullName', 'terms'].includes(field)) {
+        return;
+      }
+      validateField(field, formData[field]);
+    });
+    
+    if (Object.keys(validationErrors).length > 0) {
       return;
     }
 
-    if (mode === 'register') {
-      if (formData.password.length < 6) {
-        return;
+    try {
+      let success = false;
+      
+      if (authMode === 'register') {
+        success = await onRegister({
+          username: formData.username.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+          fullName: formData.fullName.trim()
+        });
+      } else {
+        success = await onLogin({
+          username: formData.username.trim(),
+          password: formData.password
+        });
       }
-      if (!formData.terms) {
-        return;
+      
+      if (success) {
+        resetForm();
       }
-      onRegister(formData);
-    } else {
-      onLogin(formData);
+    } catch (error) {
+      console.error('인증 오류:', error);
     }
   };
 
   // 모드 전환
   const switchMode = () => {
-    setMode(mode === 'login' ? 'register' : 'login');
-    clearForm();
+    setAuthMode(authMode === 'login' ? 'register' : 'login');
+    resetForm();
   };
 
-  // 비밀번호 표시/숨김
-  const togglePassword = () => {
-    setShowPassword(!showPassword);
+  // 키보드 이벤트 처리
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      onClose();
+    } else if (e.key === 'Enter' && isFormValid && !loading) {
+      handleSubmit(e);
+    }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="auth-modal-overlay" onClick={onClose}>
-      <div className="auth-container" onClick={(e) => e.stopPropagation()}>
+    <div className="auth-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="auth-modal" onKeyDown={handleKeyDown}>
+        <button className="close-btn" onClick={onClose} aria-label="닫기">
+          <XIcon size={20} />
+        </button>
+        
         <div className="auth-header">
-          <h1 className="auth-title">
-            {mode === 'login' ? '로그인' : '회원가입'}
-          </h1>
+          <h2 className="auth-title">VideoApp</h2>
           <p className="auth-subtitle">
-            {mode === 'login' ? '계정에 로그인하여 시작하세요' : '새 계정을 만들어 시작하세요'}
+            {authMode === 'login' 
+              ? '다시 만나서 반가워요!' 
+              : '나만의 특별한 순간을 공유하세요'
+            }
           </p>
         </div>
-
-        {/* 소셜 로그인 (로그인 모드에서만) */}
-        {mode === 'login' && (
-          <>
-            <div className="social-login">
-              <button className="social-btn" type="button">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Google
-              </button>
-              <button className="social-btn" type="button">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-                Facebook
-              </button>
-            </div>
-            <div className="auth-divider">
-              <span>또는</span>
-            </div>
-          </>
+        
+        {error && (
+          <div className="auth-error">
+            <AlertIcon size={18} />
+            <span>{error}</span>
+          </div>
         )}
-
-        <form className="auth-form" onSubmit={handleSubmit}>
+        
+        <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          {/* 사용자명 */}
           <div className="form-group">
-            <label className="form-label" htmlFor="username">사용자명</label>
             <input
               type="text"
+              className={`form-input ${validationErrors.username ? 'error' : ''}`}
+              placeholder=" "
               id="username"
-              className="form-input"
-              placeholder="사용자명을 입력하세요"
               value={formData.username}
               onChange={(e) => handleInputChange('username', e.target.value)}
-              required
+              disabled={loading}
               autoComplete="username"
-              spellCheck="false"
-              autoFocus
+              aria-describedby={validationErrors.username ? 'username-error' : undefined}
             />
+            <label className="form-label" htmlFor="username">사용자명</label>
+            {validationErrors.username && (
+              <span className="field-error" id="username-error">
+                {validationErrors.username}
+              </span>
+            )}
           </div>
-
-          {mode === 'register' && (
+          
+          {/* 이메일 (회원가입시에만) */}
+          {authMode === 'register' && (
             <div className="form-group">
-              <label className="form-label" htmlFor="email">이메일</label>
               <input
                 type="email"
+                className={`form-input ${validationErrors.email ? 'error' : ''}`}
+                placeholder=" "
                 id="email"
-                className="form-input"
-                placeholder="이메일을 입력하세요"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
+                disabled={loading}
                 autoComplete="email"
+                aria-describedby={validationErrors.email ? 'email-error' : undefined}
               />
+              <label className="form-label" htmlFor="email">이메일</label>
+              {validationErrors.email && (
+                <span className="field-error" id="email-error">
+                  {validationErrors.email}
+                </span>
+              )}
             </div>
           )}
-
+          
+          {/* 이름 (회원가입시에만) */}
+          {authMode === 'register' && (
+            <div className="form-group">
+              <input
+                type="text"
+                className={`form-input ${validationErrors.fullName ? 'error' : ''}`}
+                placeholder=" "
+                id="fullName"
+                value={formData.fullName}
+                onChange={(e) => handleInputChange('fullName', e.target.value)}
+                disabled={loading}
+                autoComplete="name"
+                aria-describedby={validationErrors.fullName ? 'fullName-error' : undefined}
+              />
+              <label className="form-label" htmlFor="fullName">이름</label>
+              {validationErrors.fullName && (
+                <span className="field-error" id="fullName-error">
+                  {validationErrors.fullName}
+                </span>
+              )}
+            </div>
+          )}
+          
+          {/* 비밀번호 */}
           <div className="form-group">
-            <label className="form-label" htmlFor="password">비밀번호</label>
-            <div style={{ position: 'relative' }}>
+            <div className="password-input-wrapper">
               <input
                 type={showPassword ? 'text' : 'password'}
+                className={`form-input ${validationErrors.password ? 'error' : ''}`}
+                placeholder=" "
                 id="password"
-                className="form-input"
-                placeholder="비밀번호를 입력하세요"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                required
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                disabled={loading}
+                autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
+                aria-describedby={validationErrors.password ? 'password-error' : undefined}
               />
+              <label className="form-label" htmlFor="password">비밀번호</label>
               <button
                 type="button"
                 className="password-toggle"
-                onClick={togglePassword}
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
+                {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
               </button>
             </div>
-            {mode === 'register' && (
-              <div id="passwordStrength">
-                <div className="strength-meter">
-                  <div className={`strength-fill ${passwordStrength.className}`}></div>
+            {validationErrors.password && (
+              <span className="field-error" id="password-error">
+                {validationErrors.password}
+              </span>
+            )}
+            
+            {/* 비밀번호 강도 표시 (회원가입시에만) */}
+            {authMode === 'register' && formData.password && (
+              <div className="password-strength">
+                <div className="strength-bar">
+                  <div 
+                    className={`strength-fill ${passwordStrength.className}`}
+                    style={{ width: `${(passwordStrength.strength / 5) * 100}%` }}
+                  />
                 </div>
-                <div className="strength-text">비밀번호 강도: {passwordStrength.text}</div>
+                <div className="strength-info">
+                  <span className={`strength-text ${passwordStrength.className}`}>
+                    {passwordStrength.text}
+                  </span>
+                  <div className="strength-requirements">
+                    {passwordStrength.requirements.map((req, index) => (
+                      <div key={index} className={`requirement ${req.test ? 'met' : 'unmet'}`}>
+                        <CheckIcon size={12} />
+                        <span>{req.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
-
-          {mode === 'register' && (
-            <div className="checkbox-group">
-              <label className="custom-checkbox">
+          
+          {/* 비밀번호 확인 (회원가입시에만) */}
+          {authMode === 'register' && (
+            <div className="form-group">
+              <div className="password-input-wrapper">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  className={`form-input ${validationErrors.confirmPassword ? 'error' : ''}`}
+                  placeholder=" "
+                  id="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  disabled={loading}
+                  autoComplete="new-password"
+                  aria-describedby={validationErrors.confirmPassword ? 'confirmPassword-error' : undefined}
+                />
+                <label className="form-label" htmlFor="confirmPassword">비밀번호 확인</label>
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
+                >
+                  {showConfirmPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                </button>
+              </div>
+              {validationErrors.confirmPassword && (
+                <span className="field-error" id="confirmPassword-error">
+                  {validationErrors.confirmPassword}
+                </span>
+              )}
+            </div>
+          )}
+          
+          {/* 이용약관 동의 (회원가입시에만) */}
+          {authMode === 'register' && (
+            <div className="form-group">
+              <label className="checkbox-container">
                 <input
                   type="checkbox"
-                  id="terms"
                   checked={formData.terms}
                   onChange={(e) => handleInputChange('terms', e.target.checked)}
-                  required
+                  disabled={loading}
+                  aria-describedby="terms-error"
                 />
-                <span className="checkmark"></span>
-                <span className="checkbox-label">이용약관 및 개인정보처리방침에 동의합니다</span>
+                <span className="checkmark">
+                  <CheckIcon size={12} />
+                </span>
+                <span className="checkbox-text">
+                  <a href="/terms" target="_blank" rel="noopener noreferrer">이용약관</a> 및 
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer">개인정보처리방침</a>에 동의합니다
+                </span>
               </label>
+              {!formData.terms && Object.keys(validationErrors).length === 0 && formData.password && (
+                <span className="field-error" id="terms-error">
+                  이용약관에 동의해주세요.
+                </span>
+              )}
             </div>
           )}
-
-          {error && (
-            <div className="auth-error">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            className={`auth-submit ${loading ? 'loading' : ''}`}
-            disabled={loading}
+          
+          <button 
+            type="submit" 
+            className={`auth-submit ${!isFormValid || loading ? 'disabled' : ''}`}
+            disabled={!isFormValid || loading}
           >
-            {loading && <span className="loading-spinner"></span>}
-            {loading ? '처리중...' : (mode === 'login' ? '로그인' : '회원가입')}
+            {loading ? (
+              <>
+                <div className="submit-spinner" />
+                처리중...
+              </>
+            ) : (
+              authMode === 'login' ? '로그인' : '회원가입'
+            )}
           </button>
         </form>
-
+        
         <div className="auth-switch">
-          <p className="auth-switch-text">
-            {mode === 'login' ? '계정이 없으신가요?' : '이미 계정이 있으신가요?'}
-          </p>
-          <button type="button" className="switch-btn" onClick={switchMode}>
-            {mode === 'login' ? '회원가입' : '로그인'}
+          <span className="switch-text">
+            {authMode === 'login' 
+              ? '계정이 없으신가요?' 
+              : '이미 계정이 있으신가요?'
+            }
+          </span>
+          <button 
+            type="button" 
+            className="switch-btn" 
+            onClick={switchMode}
+            disabled={loading}
+          >
+            {authMode === 'login' ? '회원가입' : '로그인'}
           </button>
+        </div>
+        
+        <div className="auth-footer">
+          <p>안전하고 즐거운 VideoApp을 만들어가요! 🎉</p>
         </div>
       </div>
     </div>
   );
 };
 
-export default AuthModal; 
+export default AuthModal;
