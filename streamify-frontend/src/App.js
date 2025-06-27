@@ -4,18 +4,18 @@ import './App.css';
 import VideoPlayer from './components/VideoPlayer';
 import AuthModal from './components/AuthModal';
 import UploadModal from './components/UploadModal';
-import CommentsModal from './components/CommentsModal';
+import CommentModal from './components/CommentModal';
 import SearchPage from './components/SearchPage';
 import ProfilePage from './components/ProfilePage';
 import { 
+  PlusIcon, 
+  SettingsIcon, 
+  UserIcon, 
+  LogOutIcon, 
   HomeIcon, 
   SearchIcon, 
-  PlusIcon, 
-  HeartIcon, 
-  UserIcon,
-  SettingsIcon,
-  LogOutIcon
-} from './components/icons/Icons';
+  HeartIcon 
+} from './icons/Icons';
 
 // 개발 환경 에러 핸들링
 if (process.env.NODE_ENV === 'development' && window.ResizeObserver) {
@@ -60,7 +60,8 @@ const App = () => {
   const [page, setPage] = useState(1);
   const videoContainerRef = useRef(null);
 
-  const SERVER_URL = process.env.REACT_APP_SERVER_URL || 'http://localhost:3001';
+  const SERVER_URL = process.env.REACT_APP_SERVER_URL || 
+    (window.location.hostname === 'localhost' ? 'http://localhost:3001' : `http://${window.location.hostname}:3001`);
 
   // 토큰 검증
   const verifyToken = useCallback(async (tokenToVerify) => {
@@ -666,7 +667,7 @@ const App = () => {
         token={token}
       />
 
-      <CommentsModal
+      <CommentModal
         isOpen={showCommentsModal}
         onClose={() => setShowCommentsModal(false)}
         video={activeVideoForComments}

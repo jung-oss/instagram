@@ -1,7 +1,7 @@
 // components/CommentsModal.js - 개선된 댓글 모달
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { XIcon, HeartIcon, MoreIcon, SendIcon } from '../icons/Icons';
-import './CommentSection.css';
+import './CommentModal.css';
 
 const CommentsModal = ({ 
   isOpen, 
@@ -25,7 +25,7 @@ const CommentsModal = ({
   const commentsListRef = useRef(null);
 
   // 댓글 로드
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     if (!video?.id) return;
     
     setLoading(true);
@@ -54,7 +54,7 @@ const CommentsModal = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [video?.id, serverUrl, token]);
 
   // 댓글 작성
   const submitComment = async () => {
@@ -230,7 +230,7 @@ const CommentsModal = ({
     if (isOpen && video?.id) {
       loadComments();
     }
-  }, [isOpen, video?.id]);
+  }, [isOpen, video?.id, loadComments]);
 
   // 모달이 열릴 때 입력창에 포커스
   useEffect(() => {
@@ -434,23 +434,5 @@ const CommentsModal = ({
     </div>
   );
 };
-
-// SendIcon 컴포넌트 (Icons.js에 추가하거나 여기에 정의)
-const SendIcon = ({ size = 24, ...props }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={2}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <line x1="22" y1="2" x2="11" y2="13"/>
-    <polygon points="22,2 15,22 11,13 2,9 22,2"/>
-  </svg>
-);
 
 export default CommentsModal;

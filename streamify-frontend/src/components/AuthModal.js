@@ -1,6 +1,6 @@
 // components/AuthModal.js - 개선된 인증 모달
 import React, { useState, useEffect } from 'react';
-import { XIcon, EyeIcon, EyeOffIcon, CheckIcon, AlertIcon } from './icons/Icons';
+import { XIcon, EyeIcon, EyeOffIcon, CheckIcon, AlertIcon } from '../icons/Icons';
 import './AuthModal.css';
 
 const AuthModal = ({ isOpen, onClose, onLogin, onRegister, loading, error }) => {

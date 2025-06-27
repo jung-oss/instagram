@@ -10,7 +10,7 @@ import {
   VolumeOffIcon,
   VolumeOnIcon,
   MoreIcon
-} from './icons/Icons';
+} from '../icons/Icons';
 import './VideoPlayer.css';
 
 const VideoPlayer = ({ 

@@ -370,3 +370,17 @@ export const RefreshIcon = ({ size = 24, ...props }) => (
     <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
   </svg>
 );
+
+// 전송 아이콘
+export const SendIcon = ({ size = 24, ...props }) => (
+  <svg 
+    {...iconProps} 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24"
+    {...props}
+  >
+    <line x1="22" y1="2" x2="11" y2="13"/>
+    <polygon points="22,2 15,22 11,13 2,9 22,2"/>
+  </svg>
+);
